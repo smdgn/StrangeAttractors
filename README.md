@@ -10,3 +10,5 @@ To-Do:
 - Overwrite Attractor Class
 - Check memory Issues with ObjCreator Class
 - switch from Euler computation to Runge-Kutta4 (maybe)
+
+![](https://github.com/smdgn/images/blob/master/Anmerkung%202020-08-02%20235204.png) ![](https://github.com/smdgn/images/blob/master/Anmerkung%202020-08-02%202352041.png)
