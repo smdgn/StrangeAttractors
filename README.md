@@ -11,4 +11,4 @@ To-Do:
 - Check memory Issues with ObjCreator Class
 - switch from Euler computation to Runge-Kutta4 (maybe)
 
-![](https://github.com/smdgn/images/blob/master/Anmerkung%202020-08-02%20235204.png) ![](https://github.com/smdgn/images/blob/master/Anmerkung%202020-08-02%202352041.png)
+<img src="https://github.com/smdgn/images/blob/master/Anmerkung%202020-08-02%20235204.png" width="599" height="473"> <img src="https://github.com/smdgn/images/blob/master/Anmerkung%202020-08-02%202352041.png" width="599" height="473">
