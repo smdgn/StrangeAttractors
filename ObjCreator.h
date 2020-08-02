@@ -60,7 +60,7 @@ Light initLight();
 class ObjCreator {
 private:
 	//VBOS/VAO
-	GLuint geometryObj;
+	GLuint vertexBuffer;
 	GLuint normalBuffer;
 	GLuint textureBuffer;
 	GLuint colorBuffer;
@@ -68,23 +68,19 @@ private:
 	GLuint VaoObj = 0;
 	GLuint vertCount;
 
-	//Save obj
-	obj::Model *model = NULL;
-	float angle;
-
-	glm::vec3 computeNormal(obj::Triangle *);
 	void init();
 public:
-	modelObj create(obj::Model*, float angle = 180.0f);  //Creates Obj with normals and Vertices from .obj File
+	//Some Model presets
 	modelObj createCylinder(float radius, float height, int tesselate);
 	modelObj createCube(float size);
+
+	//Binding Ops
 	void bindBuffers(modelObj&);
-	void bindBuffers(std::vector<glm::vec3>&);
 	void bindVertexData(std::vector<glm::vec3>&);
 	void bindColorData(std::vector<glm::vec4>&);
 	void bindNormalData(std::vector<glm::vec3>&);
 	void bindTextureData(std::vector<glm::vec2>&);
-	modelObj update(float angle);
+
 	void draw(GLenum mode = GL_TRIANGLES);
 
 	~ObjCreator();

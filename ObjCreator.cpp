@@ -1,17 +1,6 @@
 #include "ObjCreator.h"
 
 
-glm::vec3 ObjCreator::computeNormal(obj::Triangle * triangle)
-{
-	glm::vec3 vertices[3];
-	for (int i = 0; i < 3; i++) {
-		vertices[i] = glm::vec3(triangle->vertex[i].pos.x, triangle->vertex[i].pos.y, triangle->vertex[i].pos.z);
-	}
-	glm::vec3 A = vertices[1] - vertices[0];
-	glm::vec3 B = vertices[2] - vertices[0];
-	return glm::normalize(glm::cross(A, B));
-}
-
 void ObjCreator::init()
 {
 	if (VaoObj == 0) {
@@ -19,47 +8,6 @@ void ObjCreator::init()
 		glBindVertexArray(VaoObj);
 	}
 	else glBindVertexArray(VaoObj);
-}
-
-
-modelObj ObjCreator::create(obj::Model* model, float angle)
-{
-	std::vector<glm::vec3> triangle;
-	std::vector<glm::vec3> normals;
-
-	this->angle = angle;
-	this->model = model;
-
-	for (unsigned int i = 0; i < model->GetTriangleCount(); ++i)
-	{
-		obj::Triangle* tr = model->GetTriangle(i);
-		obj::Model::PrimitiveCollection AdjTri;
-		glm::vec3 normal = computeNormal(tr);
-		for (int i = 0; i < 3; i++) {
-			triangle.push_back(glm::vec3(tr->vertex[i].pos.x, tr->vertex[i].pos.y, tr->vertex[i].pos.z));  //populate the Vertex Array
-			model->GetAdjacentTriangles(AdjTri, &tr->vertex[i]); //Get every adjacent Triangle for every Vertex
-
-			std::vector<glm::vec3> tempNormals; //temporal normals for each face
-
-			tempNormals.push_back(glm::normalize(normal));
-			for (auto& neighbourTriangle : AdjTri) {
-				bool passed = true;
-				glm::vec3 neighbourNormal = computeNormal(neighbourTriangle);
-				if (std::acos(glm::dot(neighbourNormal, normal))*180.0f / PI < angle) { //angle
-					for (auto cmp : tempNormals) {
-						if (glm::length(cmp - neighbourNormal) < EPSILON) {
-							passed = false;
-						}
-					}
-				}
-				else passed = false;
-				if (passed == true) tempNormals.push_back(glm::normalize(neighbourNormal));
-			}
-			normals.push_back(glm::normalize(std::accumulate(tempNormals.begin(), tempNormals.end(), decltype(tempNormals)::value_type(0) / (float)tempNormals.size())));
-			AdjTri.clear();
-		}
-	}
-	return modelObj{ normals, triangle };
 }
 
 modelObj ObjCreator::createCylinder(float radius, float h, int tesselate)
@@ -229,35 +177,15 @@ void ObjCreator::bindBuffers(modelObj & objM)
 
 }
 
-void ObjCreator::bindBuffers(std::vector<glm::vec3>& container) {
-	vertCount = container.size();
 
-	glGenVertexArrays(1, &VaoObj);
-	glBindVertexArray(VaoObj);
-
-	glGenBuffers(1, &geometryObj);
-	glBindBuffer(GL_ARRAY_BUFFER, geometryObj);
-	//Kopiere die vertices ins VBO
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)* container.size(), container.data(), GL_DYNAMIC_DRAW);
-
-
-	// Shader Attribute
-	glEnableVertexAttribArray(GLT_ATTRIBUTE_VERTEX);
-	//glBindBuffer(GL_ARRAY_BUFFER, geometryObj);
-	glVertexAttribPointer(GLT_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
-
-	//VAO wieder unbinden
-	glBindVertexArray(0);
-
-}
 void ObjCreator::bindVertexData(std::vector<glm::vec3>& vertices)
 {
 	vertCount = vertices.size();
 
 	init();
 
-	glGenBuffers(1, &geometryObj);
-	glBindBuffer(GL_ARRAY_BUFFER, geometryObj);
+	glGenBuffers(1, &vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	//Kopiere die vertices ins VBO
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)* vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
 
@@ -320,18 +248,6 @@ void ObjCreator::bindTextureData(std::vector<glm::vec2>& texture)
 	glBindVertexArray(0);
 }
 
-modelObj ObjCreator::update(float angle) //updates normals, for vertice updates, create and load new obj
-{
-	modelObj retmodel;
-	if (geometryObj != 0 && normalBuffer != 0) {
-		retmodel = create(model, angle);
-		glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3)*vertCount, retmodel.normals.data());
-	}
-	this->angle = angle;
-
-	return retmodel;
-}
 
 void ObjCreator::draw(GLenum mode)
 {
@@ -343,10 +259,9 @@ void ObjCreator::draw(GLenum mode)
 }
 
 ObjCreator::~ObjCreator() {
-	model = NULL;
 	glDeleteVertexArrays(1, &VaoObj);
 	glDeleteBuffers(1, &normalBuffer);
-	glDeleteBuffers(1, &geometryObj);
+	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &colorBuffer);
 	glDeleteBuffers(1, &textureBuffer);
 }
